@@ -2,7 +2,7 @@
 // Created by JoneHe on 2020/12/29.
 //
 
-#include "QAESEncryption.h"
+#include "qaesencryption.h"
 
 
 /*

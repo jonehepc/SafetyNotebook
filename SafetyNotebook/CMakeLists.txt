@@ -41,7 +41,7 @@ set(PROJECT_SOURCES
         mainwindow.h
         mainwindow.ui
         ${TS_FILES}
-        QAESEncryption.cpp QAESEncryption.h)
+        qaesencryption.cpp qaesencryption.h)
 
 if (MSVC)
     SET(OPTIONS WIN32)

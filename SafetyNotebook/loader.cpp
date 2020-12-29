@@ -1,5 +1,5 @@
 ﻿#include "loader.h"
-#include "SNoteItem.h"
+#include "snoteitem.h"
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
@@ -14,14 +14,14 @@ QByteArray md5_sum(const QByteArray &data) {
     return sum;
 }
 
-QByteArray sha256_sum(const QByteArray& data) {
-    QByteArray sum = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
+QByteArray sha512_sum(const QByteArray& data) {
+    QByteArray sum = QCryptographicHash::hash(data, QCryptographicHash::Sha512);
     return sum;
 }
 
 QByteArray aes_encrypt(const QByteArray &key, const QByteArray &data) {
     QByteArray iv("0123456789ABCDEF");
-    QAESEncryption::MODE mode = QAESEncryption::CBC;
+    QAESEncryption::MODE mode = QAESEncryption::CFB;
     QAESEncryption::AES level = QAESEncryption::AES_128;
     QAESEncryption::PADDING padding = QAESEncryption::X923;
     switch (key.size()) {
@@ -41,7 +41,7 @@ QByteArray aes_encrypt(const QByteArray &key, const QByteArray &data) {
 
 QByteArray aes_decrypt(const QByteArray &key, const QByteArray &data) {
     QByteArray iv("0123456789ABCDEF");
-    QAESEncryption::MODE mode = QAESEncryption::CBC;
+    QAESEncryption::MODE mode = QAESEncryption::CFB;
     QAESEncryption::AES level = QAESEncryption::AES_128;
     QAESEncryption::PADDING padding = QAESEncryption::X923;
     switch (key.size()) {
@@ -62,7 +62,7 @@ SNoteItem* load_item_from_path(const QString &path, const QString &key) {
     QFile file(path);
     file.open(QIODevice::ReadOnly);
     auto data = file.readAll();
-    auto b_key = md5_sum(key.toUtf8());
+    auto b_key = sha512_sum(key.toUtf8());
     auto jsonArray = aes_decrypt(b_key, data);
     auto s_len = jsonArray.length();
     for(int i = 0; i < s_len; i++) {
@@ -79,7 +79,7 @@ SNoteItem* load_item_from_path(const QString &path, const QString &key) {
 void save_items_to_path(const QString &path, const QString &key, const SNoteItem &item) {
     QFile file(path);
     file.open(QIODevice::WriteOnly | QIODevice::Truncate);
-    auto b_key = md5_sum(key.toUtf8());
+    auto b_key = sha512_sum(key.toUtf8());
     auto jsonArray = SNoteItem::toJson(item);
     auto data = aes_encrypt(b_key, jsonArray);
     file.write(data);
