@@ -77,7 +77,7 @@ void SNoteItem::setSNoteItemType(SNoteItemType type) {
 }
 
 SNoteItem *SNoteItem::makeRootItem() {
-    auto result = new SNoteItem(QUuid::createUuid(), QString::fromLocal8Bit("安全笔记本"), "", Partition);
+    auto result = new SNoteItem(QUuid::createUuid(), QStringLiteral("安全笔记本"), "", Partition);
     return result;
 }
 
