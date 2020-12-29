@@ -7,6 +7,8 @@
 
 QByteArray md5_sum(const QByteArray &data);
 
+QByteArray sha256_sum(const QByteArray &data);
+
 QByteArray aes_encrypt(const QByteArray &key, const QByteArray &data);
 
 QByteArray aes_decrypt(const QByteArray &key, const QByteArray &data);

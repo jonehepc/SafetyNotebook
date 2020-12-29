@@ -14,6 +14,11 @@ QByteArray md5_sum(const QByteArray &data) {
     return sum;
 }
 
+QByteArray sha256_sum(const QByteArray& data) {
+    QByteArray sum = QCryptographicHash::hash(data, QCryptographicHash::Sha256);
+    return sum;
+}
+
 QByteArray aes_encrypt(const QByteArray &key, const QByteArray &data) {
     QByteArray iv("0123456789ABCDEF");
     QAESEncryption::MODE mode = QAESEncryption::CBC;
