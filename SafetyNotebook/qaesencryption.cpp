@@ -1,9 +1,4 @@
-//
-// Created by JoneHe on 2020/12/29.
-//
-
-#include "qaesencryption.h"
-
+﻿#include "qaesencryption.h"
 
 /*
  * Static Functions
