@@ -9,7 +9,7 @@
 #include <QtCore/QJsonArray>
 
 
-SNoteItem::SNoteItem() {
+SNoteItem::SNoteItem() : _type(SNoteItemType::Note) {
     setEditable(false);
 }
 
