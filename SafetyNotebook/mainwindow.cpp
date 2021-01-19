@@ -42,7 +42,7 @@ void MainWindow::onActionAboutTriggered() {
     QMessageBox::about(this, QStringLiteral("关于安全笔记本"),
                        QStringLiteral("安全笔记本是用密码加密您的笔记内容的工具，用于保护您的机密信息。"));
     QStringLiteral("<html><head/><body><p>安全笔记本，是一个AES加密保护的笔记本类工具。"
-                   "<br/>主要功能有：<br/>&nbsp;&nbsp;&nbsp;&nbsp;笔记管理：分区、分主题进行管理。<br/>&nbsp;&nbsp;&nbsp;&nbsp;密码生成：生成指定长度的密钥。<br/>&nbsp;&nbsp;版本: 0.1.1<br/>授权: <span><a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU 宽通用公共许可证</a><br/></span>联系: &#169; 2020 <a href=\"mailto:jonehepc@hotmail.com\">jonehepc@hotmail.com</a> 版权所有</p></body></html>");
+                   "<br/>主要功能有：<br/>&nbsp;&nbsp;&nbsp;&nbsp;笔记管理：分区、分主题进行管理。<br/>&nbsp;&nbsp;&nbsp;&nbsp;密码生成：生成指定长度的密钥。<br/>&nbsp;&nbsp;版本: 0.1.2<br/>授权: <span><a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU 宽通用公共许可证</a><br/></span>联系: &#169; 2020 <a href=\"mailto:jonehepc@hotmail.com\">jonehepc@hotmail.com</a> 版权所有</p></body></html>");
 }
 
 void MainWindow::onActionAddTriggered() {
