@@ -5,7 +5,7 @@
 #include <QtCore/QItemSelectionModel>
 #include <QtGui/QStandardItemModel>
 #include "settings.h"
-#include "SNoteItem.h"
+#include "snoteitem.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -15,7 +15,7 @@ class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    explicit MainWindow(QWidget *parent = nullptr);
 
     ~MainWindow();
 
@@ -95,13 +95,17 @@ public slots:
 
     void onActionRemovePartitionTriggered();
 
-    void onTextEdited(const QString &text);
-
-    void onTextEdited();
+    void onTextEdited(const QString &text = "");
 
     void onTreeViewSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected);
 
     void onLineEditTitleEditFinished();
+
+    void setFileModify(bool state);
+    void setFileOpened(bool state);
+
+/*private:
+    std::function<void()> callback;*/
 
 private:
     Ui::MainWindow *ui;
@@ -109,13 +113,13 @@ private:
     Settings *_settings = nullptr;
     QString _file_path;
     bool _file_opened = false;
-    bool _file_new = false;
-    bool _file_modified = false;
-    bool _current_modified = false;
+    //bool _file_new = false;
+    bool _file_modified;
+    //bool _current_modified = false;
     SNoteItem *_note = nullptr;
     QString _password;
     QStandardItemModel *_model = nullptr;
-    SNoteItem *_current_note = nullptr;
+    //SNoteItem *_current_note = nullptr;
     SNoteItem *_current_item = nullptr;
     bool _current_changed = false;
     bool _do_note_change_edition = false;

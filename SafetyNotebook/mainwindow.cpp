@@ -9,27 +9,29 @@
 #include <QtWidgets/QFileDialog>
 #include <QtGui/QCloseEvent>
 #include <exception>
+#include <functional>
 
 MainWindow::MainWindow(QWidget *parent)
-        : QMainWindow(parent), ui(new Ui::MainWindow) {
-    ui->setupUi((QMainWindow *) this);
+        : QMainWindow(parent),
+          ui(new Ui::MainWindow),
+          _file_modified(false),
+          _model(new QStandardItemModel()),
+          _settings(new Settings()) {
 
-    _model = new QStandardItemModel();
-    _settings = new Settings();
+    ui->setupUi((QMainWindow *) this);
     _settings->loadSettings();
     initUi();
     initSignalAndSlots();
-
     updateTreeView();
 }
 
 MainWindow::~MainWindow() {
-    delete ui;
-    delete _settings;
     if (_model != nullptr) {
         delete _model;
         _model = nullptr;
     }
+    delete _settings;
+    delete ui;
 }
 
 void MainWindow::onActionAboutQtTriggered() {
@@ -44,7 +46,6 @@ void MainWindow::onActionAboutTriggered() {
 }
 
 void MainWindow::onActionAddTriggered() {
-    _current_item = nullptr;
     _do_note_change_edition = true;
     _in_refresh = true;
     ui->lineEditTitle->setText(QStringLiteral(""));
@@ -53,10 +54,9 @@ void MainWindow::onActionAddTriggered() {
     ui->textEdit->setEnabled(true);
     auto noteItem = new SNoteItem(QUuid::createUuid(), QStringLiteral("笔记标题"), QStringLiteral(""),
                                   SNoteItemType::Note);
+    _current_item->appendRow(noteItem);
     _current_item = noteItem;
-    _current_note->appendRow(noteItem);
-    _file_modified = true;
-    _current_modified = false;
+    setFileModify(true);
     _do_note_change_edition = false;
     _in_refresh = false;
     refreshTreeView();
@@ -78,11 +78,12 @@ void MainWindow::onActionCloseTriggered() {
         ui->textEdit->setPlainText("");
         ui->textEdit->setEnabled(false);
         _model->clear();
-        _current_note = nullptr;
         _current_item = nullptr;
         refreshTreeView();
         _file_path = "";
-        _current_modified = false;
+        setFileOpened(false);
+        setFileModify(false);
+        setWindowTitle(QStringLiteral("安全笔记本"));
         _current_changed = false;
         _note = nullptr;
         displayMessageOnStatusBar(QStringLiteral("关闭笔记完成。"));
@@ -113,7 +114,7 @@ void MainWindow::onActionDeleteTriggered() {
                 auto c = (SNoteItem *) parent->child(r);
                 if (_current_item == c) {
                     parent->removeRow(r);
-                    _file_modified = true;
+                    setFileModify(true);
                     refreshTreeView();
                 }
             }
@@ -142,25 +143,38 @@ void MainWindow::onActionNewTriggered() {
     _file_path = "";
     _note = SNoteItem::makeRootItem();
     updateTreeView();
-    _current_note = nullptr;
+    //_current_note = nullptr;
+    _current_item = nullptr;
+    setWindowTitle(QStringLiteral("安全笔记本 - [NewFile]"));
     displayMessageOnStatusBar(QStringLiteral("新建笔记本完成。"));
-    _file_modified = true;
+    setFileModify(true);
     setSaveActions(true);
 }
 
 void MainWindow::onActionOpenTriggered() {
-
+    if (_note != nullptr) {
+        if (!closeNote()) {
+            return;
+        }
+    }
     auto file_path = getOpenPath();
     if (file_path.isNull() || file_path.isEmpty())
         return;
     auto password = getPassword();
     if (password.isNull() || password.isEmpty())
         return;
-    if (_note != nullptr) onActionCloseTriggered();
     _file_path = file_path;
     _password = password;
     if (load_note()) {
-        setSaveActions(true);
+        _in_refresh = false;
+        _do_note_change_edition = false;
+        _current_changed = false;
+        //_file_opened = true;
+        //_file_new = false;
+        setFileModify(false);
+        setFileOpened(true);
+        //_current_modified = false;
+        setSaveActions(false);
         setNoteActions(true);
         setDirActions(true);
         displayMessageOnStatusBar(QStringLiteral("打开笔记完成"));
@@ -178,7 +192,7 @@ void MainWindow::onActionPasteTriggered() {
 }
 
 void MainWindow::onActionSaveTriggered() {
-    if (!_file_modified && !_current_modified) {
+    if (!_file_modified) {
         return;
     }
     if (_file_path.isEmpty()) {
@@ -198,9 +212,10 @@ void MainWindow::onActionSaveTriggered() {
         _password = password;
     }
     saveNote();
-    _file_modified = false;
+    setFileOpened(true);
+    setFileModify(false);
     _current_changed = false;
-    _current_modified = false;
+    //_current_modified = false;
     ui->actionSave->setEnabled(false);
     ui->actionSave_as->setEnabled(false);
 }
@@ -215,8 +230,8 @@ void MainWindow::onActionSave_asTriggered() {
     _file_path = file_path;
     _password = password;
     saveNote();
-    _file_modified = false;
-    _file_new = false;
+    setFileModify(false);
+    //_file_new = false;
     ui->actionSave->setEnabled(false);
     ui->actionSave_as->setEnabled(false);
     setWindowTitle(QStringLiteral("安全笔记本 - [") + _file_path + QString("]"));
@@ -242,12 +257,17 @@ void MainWindow::onActionAddPartitionTriggered() {
         if (!newDirDialog.getDirName().isEmpty()) {
             auto noteItem = new SNoteItem(QUuid::createUuid(), newDirDialog.getDirName(), QStringLiteral(""),
                                           SNoteItemType::Partition);
-            if (_current_note == nullptr)
+            /*if (_current_note == nullptr)
                 _note->appendRow(noteItem);
             else
                 _current_note->appendRow(noteItem);
+            _current_note = noteItem;*/
+            if (_current_item == nullptr) {
+                _note->appendRow(noteItem);
+            } else {
+                _current_item->appendRow(noteItem);
+            }
             _current_item = noteItem;
-            _current_note = noteItem;
             ui->lineEditTitle->setText(_current_item->title());
             ui->textEdit->setText(QStringLiteral(""));
             ui->lineEditTitle->setEnabled(true);
@@ -276,7 +296,7 @@ void MainWindow::onActionRemovePartitionTriggered() {
                     }
                 }
                 parent->removeRow(index.row());
-                _file_modified = true;
+                setFileModify(true);
                 refreshTreeView();
             }
         }
@@ -284,7 +304,7 @@ void MainWindow::onActionRemovePartitionTriggered() {
 }
 
 void MainWindow::onTextEdited(const QString &text) {
-    if (_current_note != nullptr)
+    if (_current_item != nullptr && !_do_note_change_edition)
         onLineEditTitleEditFinished();
 }
 
@@ -302,7 +322,7 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
         ui->lineEditTitle->setText(note->title());
         switch (note->sNoteItemType()) {
             case SNoteItemType::Partition:
-                _current_note = note;
+                //_current_note = note;
                 //_current_item = nullptr;
                 setEditActions(false);
                 setDirActions(true);
@@ -337,11 +357,12 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
 }
 
 void MainWindow::closeEvent(QCloseEvent *event) {
+    if (_note != nullptr) {
+        if (!closeNote()) {
+            event->ignore();
+        }
+    }
     _settings->saveSettings();
-
-
-    //if(_is_remote_file)
-    //QWidget::closeEvent(event);
 }
 
 void MainWindow::initUi() {
@@ -358,6 +379,8 @@ void MainWindow::initUi() {
 }
 
 void MainWindow::initSignalAndSlots() {
+    connect(this, SIGNAL(fileModifyChanged(bool)), this, SLOT(onFileModifyChanged(bool)));
+
     connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(onActionAboutQtTriggered()));
     connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(onActionAboutTriggered()));
     connect(ui->actionAdd, SIGNAL(triggered()), this, SLOT(onActionAddTriggered()));
@@ -380,7 +403,7 @@ void MainWindow::initSignalAndSlots() {
     connect(ui->actionRemovePartition, SIGNAL(triggered()), this, SLOT(onActionRemovePartitionTriggered()));
 
     connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEdited()));
-    connect(ui->lineEditTitle, SIGNAL(textChanged(const QString &)), this, SLOT(onTextEdited(const QString&)));
+    connect(ui->lineEditTitle, SIGNAL(textEdited(const QString &)), this, SLOT(onTextEdited(const QString&)));
 
     auto selectionModel = ui->treeView->selectionModel();
     connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this,
@@ -438,18 +461,18 @@ void MainWindow::refreshTreeView() {
     if (_current_item != nullptr) {
         ui->treeView->selectionModel()->setCurrentIndex(_model->indexFromItem(_current_item),
                                                         QItemSelectionModel::Select);
-    } else if (_current_note != nullptr) {
+    }/* else if (_current_note != nullptr) {
         auto old = _do_note_change_edition;
         _do_note_change_edition = true;
         ui->treeView->selectionModel()->setCurrentIndex(_model->indexFromItem(_current_note),
                                                         QItemSelectionModel::Select);
         _do_note_change_edition = old;
-    }
+    }*/
     _in_refresh = false;
 }
 
 void MainWindow::saveNote() {
-    onLineEditTitleEditFinished();
+    // onLineEditTitleEditFinished();
     save_items_to_path(_file_path, _password, *_note);
     displayMessageOnStatusBar(QStringLiteral("保存笔记成功"));
 }
@@ -496,13 +519,13 @@ void MainWindow::onLineEditTitleEditFinished() {
     if (ui->lineEditTitle->text() != _current_item->title()) {
         need_refresh = true;
         _current_item->setTitle(ui->lineEditTitle->text());
-        _file_modified = true;
+        setFileModify(true);
     }
 
     if (_current_item->sNoteItemType() == SNoteItemType::Note) {
         if (ui->textEdit->toPlainText() != _current_item->content()) {
             _current_item->setContent(ui->textEdit->toPlainText());
-            _current_modified = true;
+            setFileModify(true);
         }
     }
 
@@ -510,38 +533,70 @@ void MainWindow::onLineEditTitleEditFinished() {
         refreshTreeView();
 }
 
-void MainWindow::onTextEdited() {
-    onTextEdited("");
-}
-
 void MainWindow::onActionGenPasswordTriggered() {
     PasswordGenerateDialog dialog(this);
     dialog.exec();
 }
 
+/**
+ * @brief 关闭笔记本，如果内容有更改将提示保存。
+ *
+ * @return: 是否已关闭，如果选择取消则返回False，其它两项返回True。
+ * */
 bool MainWindow::closeNote() {
     if (_file_modified) {
-        auto t = QMessageBox::warning(this, QStringLiteral("是否保存笔记"),
-                                      QStringLiteral("笔记内容已经更改，是否在关闭前保存？"),
-                                      QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel);
-        switch (t) {
+        auto button = QMessageBox::warning(this, QStringLiteral("是否保存笔记"),
+                                           QStringLiteral("笔记内容已经更改，是否在关闭前保存？"),
+                                           QMessageBox::Yes | QMessageBox::No |
+                                           QMessageBox::Cancel);
+        switch (button) {
             case QMessageBox::Yes:
                 onActionSaveTriggered();
                 break;
             case QMessageBox::No:
-                return true;
-            case QMessageBox::Cancel:
-                return false;
+                break;
+//            case QMessageBox::Cancel:
+//                return false;
             default:
                 return false;
         }
     }
+    setWindowTitle(QStringLiteral("安全笔记本"));
     return true;
 }
 
+/**
+ * @brief:  设置保存类的Action状态
+ *
+ * @param e:    状态
+ * */
 void MainWindow::setSaveActions(bool e) {
     ui->actionSave->setEnabled(e);
     ui->actionSave_as->setEnabled(e);
-    ui->actionClose->setEnabled(e);
+    //ui->actionClose->setEnabled(e);
+}
+
+/**
+ * @brief: 设置文件修改标志
+ *
+ * @param state:    修改标志
+ *
+ * 会同时更改文件修改状态相关的Action标志。
+ * */
+void MainWindow::setFileModify(bool state) {
+    _file_modified = state;
+    ui->actionSave->setEnabled(state);
+    if (_file_opened)
+        setWindowTitle(QStringLiteral("安全笔记本 - [") + _file_path + QString(state ? "] *" : "]"));
+}
+
+/**
+ * @brief: 设置文件打开或新建标志。
+ *
+ * @param state: 文件标志
+ * */
+void MainWindow::setFileOpened(bool state) {
+    _file_opened = state;
+    ui->actionClose->setEnabled(state);
 }
 
