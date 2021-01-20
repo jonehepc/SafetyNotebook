@@ -9,6 +9,20 @@
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
+class QAction;
+
+class QComboBox;
+
+class QFontComboBox;
+
+class QTextEdit;
+
+class QTextCharFormat;
+
+class QMenu;
+
+class QPrinter;
+
 QT_END_NAMESPACE
 
 class MainWindow : public QMainWindow {
@@ -17,7 +31,7 @@ Q_OBJECT
 public:
     explicit MainWindow(QWidget *parent = nullptr);
 
-    ~MainWindow();
+    //~MainWindow();
 
     void initUi();
 
@@ -28,8 +42,6 @@ public:
     void setEditActions(bool e);
 
     void setDirActions(bool e);
-
-    void setSaveActions(bool e);
 
     void displayMessageOnStatusBar(const QString &msg);
 
@@ -51,6 +63,7 @@ public:
 
     QString getOpenPath();
 
+protected:
     void closeEvent(QCloseEvent *event) override;
 
 public slots:
@@ -102,10 +115,82 @@ public slots:
     void onLineEditTitleEditFinished();
 
     void setFileModify(bool state);
+
     void setFileOpened(bool state);
 
-/*private:
-    std::function<void()> callback;*/
+    /* 富文本编译相关 */
+
+    void textBold();
+
+    void textUnderline();
+
+    void textItalic();
+
+    void textStrikeout();
+
+    void textFamily(const QString &f);
+
+    void textSize(const QString &p);
+
+    void textStyle(int styleIndex);
+
+    void textColor();
+
+    void textBackgroundColor();
+
+    void textAlign(QAction *action);
+
+    void setChecked(bool checked);
+
+    void indent();
+
+    void unindent();
+
+    void currentCharFormatChanged(const QTextCharFormat &format);
+
+    void cursorPositionChanged();
+
+    void clipboardDataChanged();
+
+    void printPreview(QPrinter *);
+
+    void zoomIn();
+
+    void zoomOut();
+
+    void updateContent();
+
+private:
+    void setTextEditEnableState(bool state);
+
+    void setSaveActions(bool e);
+
+    void setupFileActions();
+
+    void setupEditActions();
+
+    void setupTextActions();
+
+    bool maybeSave();
+
+    void setCurrentFileName(const QString &fileName);
+
+    void modifyIndentation(int amount);
+
+    void mergeFormatOnWordOrSelection(const QTextCharFormat &format);
+
+    void fontChanged(const QFont &f);
+
+    void colorChanged(const QColor &c);
+
+    void bgColorChanged(const QColor &c);
+
+    void alignmentChanged(Qt::Alignment a);
+
+private:
+    QComboBox *comboStyle;
+    QFontComboBox *comboFont;
+    QComboBox *comboSize;
 
 private:
     Ui::MainWindow *ui;

@@ -34,7 +34,8 @@ set(CPP_FILES
         loader.cpp
         onlinefileinfomodel.cpp
         qaesencryption.cpp
-        PasswordGenerateDialog.cpp)
+        PasswordGenerateDialog.cpp
+        mtextedit.cpp)
 
 set(H_FILES
         mainwindow.h
@@ -46,7 +47,8 @@ set(H_FILES
         loader.h
         onlinefileinfomodel.h
         qaesencryption.h
-        PasswordGenerateDialog.h)
+        PasswordGenerateDialog.h
+        mtextedit.h)
 
 set(UI_FILES
         mainwindow.ui

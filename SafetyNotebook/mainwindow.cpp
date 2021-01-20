@@ -5,11 +5,17 @@
 #include "PasswordGenerateDialog.h"
 #include "settingsdialog.h"
 #include "newdirdialog.h"
+#include <QtCore/QDebug>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
 #include <QtGui/QCloseEvent>
+#include <QtGui/QTextList>
+#include <QtGui/QClipboard>
+#include <QtWidgets/QComboBox>
+#include <QtWidgets/QFontComboBox>
+#include <QtWidgets/QColorDialog>
 #include <exception>
-#include <functional>
+#include <iostream>
 
 MainWindow::MainWindow(QWidget *parent)
         : QMainWindow(parent),
@@ -21,28 +27,38 @@ MainWindow::MainWindow(QWidget *parent)
     ui->setupUi((QMainWindow *) this);
     _settings->loadSettings();
     initUi();
+    setupEditActions();
+    setupFileActions();
+    setupTextActions();
     initSignalAndSlots();
     updateTreeView();
 }
 
-MainWindow::~MainWindow() {
+/*MainWindow::~MainWindow() {
     if (_model != nullptr) {
         delete _model;
         _model = nullptr;
     }
     delete _settings;
     delete ui;
-}
+}*/
 
 void MainWindow::onActionAboutQtTriggered() {
     QMessageBox::aboutQt(this);
 }
 
 void MainWindow::onActionAboutTriggered() {
+    auto about_info = QStringLiteral("<html><head/><body><p>安全笔记本，是一个AES加密保护的笔记本类工具。"
+                                     "<br/>"
+                                     "<br/>主要功能有："
+                                     "<br/>&nbsp;&nbsp;&nbsp;&nbsp;笔记管理：分区、分主题进行管理。"
+                                     "<br/>&nbsp;&nbsp;&nbsp;&nbsp;密码生成：生成指定长度的密钥。"
+                                     "<br/>版本: 0.1.2"
+                                     "<br/>授权: <span><a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU 宽通用公共许可证</a><br/>"
+                                     "</span>联系: <a href=\"mailto:jonehepc@hotmail.com\">jonehepc@hotmail.com</a>"
+                                     "&#169; 2020 版权所有</p></body></html>");
     QMessageBox::about(this, QStringLiteral("关于安全笔记本"),
-                       QStringLiteral("安全笔记本是用密码加密您的笔记内容的工具，用于保护您的机密信息。"));
-    QStringLiteral("<html><head/><body><p>安全笔记本，是一个AES加密保护的笔记本类工具。"
-                   "<br/>主要功能有：<br/>&nbsp;&nbsp;&nbsp;&nbsp;笔记管理：分区、分主题进行管理。<br/>&nbsp;&nbsp;&nbsp;&nbsp;密码生成：生成指定长度的密钥。<br/>&nbsp;&nbsp;版本: 0.1.2<br/>授权: <span><a href=\"https://www.gnu.org/licenses/lgpl.html\">GNU 宽通用公共许可证</a><br/></span>联系: &#169; 2020 <a href=\"mailto:jonehepc@hotmail.com\">jonehepc@hotmail.com</a> 版权所有</p></body></html>");
+                       about_info);
 }
 
 void MainWindow::onActionAddTriggered() {
@@ -51,7 +67,7 @@ void MainWindow::onActionAddTriggered() {
     ui->lineEditTitle->setText(QStringLiteral(""));
     ui->textEdit->setText(QStringLiteral(""));
     ui->lineEditTitle->setEnabled(true);
-    ui->textEdit->setEnabled(true);
+    setTextEditEnableState(true);
     auto noteItem = new SNoteItem(QUuid::createUuid(), QStringLiteral("笔记标题"), QStringLiteral(""),
                                   SNoteItemType::Note);
     _current_item->appendRow(noteItem);
@@ -76,7 +92,7 @@ void MainWindow::onActionCloseTriggered() {
         ui->lineEditTitle->setText("");
         ui->lineEditTitle->setEnabled(false);
         ui->textEdit->setPlainText("");
-        ui->textEdit->setEnabled(false);
+        setTextEditEnableState(false);
         _model->clear();
         _current_item = nullptr;
         refreshTreeView();
@@ -102,7 +118,8 @@ void MainWindow::onActionCutTriggered() {
 void MainWindow::onActionDeleteTriggered() {
     if (_current_item != nullptr && _current_item->sNoteItemType() == SNoteItemType::Note) {
         if (!_current_item->content().isEmpty()) {
-            if (QMessageBox::warning(this, QStringLiteral(""), QStringLiteral(""),
+            if (QMessageBox::warning(this, QStringLiteral("警告"),
+                                     QStringLiteral("正在删除的笔记中有内容，是否要继续删除？"),
                                      QMessageBox::Yes | QMessageBox::No) == QMessageBox::No)
                 return;
         }
@@ -139,7 +156,7 @@ void MainWindow::onActionNewTriggered() {
     refreshTreeView();
     ui->lineEditTitle->setText("");
     ui->textEdit->setPlainText("");
-    ui->textEdit->setEnabled(false);
+    setTextEditEnableState(false);
     _file_path = "";
     _note = SNoteItem::makeRootItem();
     updateTreeView();
@@ -271,7 +288,7 @@ void MainWindow::onActionAddPartitionTriggered() {
             ui->lineEditTitle->setText(_current_item->title());
             ui->textEdit->setText(QStringLiteral(""));
             ui->lineEditTitle->setEnabled(true);
-            ui->textEdit->setEnabled(false);
+            setTextEditEnableState(false);
             refreshTreeView();
             ui->treeView->clearSelection();
             ui->treeView->setCurrentIndex(_model->indexFromItem(_current_item));
@@ -309,6 +326,7 @@ void MainWindow::onTextEdited(const QString &text) {
 }
 
 void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, const QItemSelection &deselected) {
+    updateContent();
     if (!selected.isEmpty()) {
         if (_model != selected.indexes()[0].model()) {
             return;
@@ -328,7 +346,7 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
                 setDirActions(true);
                 ui->actionAdd->setEnabled(true);
                 ui->textEdit->setText(QStringLiteral(""));
-                ui->textEdit->setEnabled(false);
+                setTextEditEnableState(false);
                 if (_current_item->parent() == nullptr) {
                     ui->actionRemovePartition->setEnabled(false);
                     ui->lineEditTitle->setEnabled(false);
@@ -340,8 +358,8 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
                 setEditActions(true);
                 ui->actionAdd->setEnabled(false);
                 setDirActions(false);
-                ui->textEdit->setPlainText(_current_item->content());
-                ui->textEdit->setEnabled(true);
+                ui->textEdit->setHtml(_current_item->content());
+                setTextEditEnableState(true);
                 //ui->textEdit->show();
                 break;
             default:
@@ -366,8 +384,10 @@ void MainWindow::closeEvent(QCloseEvent *event) {
 }
 
 void MainWindow::initUi() {
+    setToolButtonStyle(Qt::ToolButtonFollowStyle);
+
     ui->lineEditTitle->setEnabled(false);
-    ui->textEdit->setEnabled(false);
+    setTextEditEnableState(false);
     ui->treeView->setModel(_model);
 
     setNoteActions(false);
@@ -473,6 +493,7 @@ void MainWindow::refreshTreeView() {
 
 void MainWindow::saveNote() {
     // onLineEditTitleEditFinished();
+    updateContent();
     save_items_to_path(_file_path, _password, *_note);
     displayMessageOnStatusBar(QStringLiteral("保存笔记成功"));
 }
@@ -523,8 +544,8 @@ void MainWindow::onLineEditTitleEditFinished() {
     }
 
     if (_current_item->sNoteItemType() == SNoteItemType::Note) {
-        if (ui->textEdit->toPlainText() != _current_item->content()) {
-            _current_item->setContent(ui->textEdit->toPlainText());
+        if (ui->textEdit->document()->isModified()) {
+            //_current_item->setContent(ui->textEdit->toHtml());
             setFileModify(true);
         }
     }
@@ -600,3 +621,461 @@ void MainWindow::setFileOpened(bool state) {
     ui->actionClose->setEnabled(state);
 }
 
+void MainWindow::textBold() {
+    QTextCharFormat fmt;
+    fmt.setFontWeight(ui->actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
+    mergeFormatOnWordOrSelection(fmt);
+}
+
+void MainWindow::textUnderline() {
+    QTextCharFormat fmt;
+    fmt.setFontUnderline(ui->actionTextUnderline->isChecked());
+    mergeFormatOnWordOrSelection(fmt);
+}
+
+void MainWindow::textItalic() {
+    QTextCharFormat fmt;
+    fmt.setFontItalic(ui->actionTextItalic->isChecked());
+    mergeFormatOnWordOrSelection(fmt);
+}
+
+void MainWindow::textFamily(const QString &f) {
+    std::cout << f.toStdString() << std::endl;
+    /*QTextCharFormat fmt;
+    fmt.setFontFamily(f);
+    mergeFormatOnWordOrSelection(fmt);*/
+    QTextCursor cursor = ui->textEdit->textCursor();
+    cursor.beginEditBlock();
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::BlockUnderCursor);
+    }
+    QTextCharFormat fmt;
+    fmt = cursor.charFormat();
+    fmt.setFontFamily(f);
+    cursor.setCharFormat(fmt);
+    ui->textEdit->setCurrentCharFormat(fmt);
+    cursor.endEditBlock();
+}
+
+void MainWindow::textSize(const QString &p) {
+    qreal pointSize = p.toFloat();
+    if (p.toFloat() > 0) {
+        QTextCharFormat fmt;
+        fmt.setFontPointSize(pointSize);
+        mergeFormatOnWordOrSelection(fmt);
+    }
+}
+
+void MainWindow::textStyle(int styleIndex) {
+    QTextCursor cursor = ui->textEdit->textCursor();
+    QTextListFormat::Style style = QTextListFormat::ListStyleUndefined;
+    QTextBlockFormat::MarkerType marker = QTextBlockFormat::MarkerType::NoMarker;
+
+    switch (styleIndex) {
+        case 1:
+            style = QTextListFormat::ListDisc;
+            break;
+        case 2:
+            style = QTextListFormat::ListCircle;
+            break;
+        case 3:
+            style = QTextListFormat::ListSquare;
+            break;
+        case 4:
+            if (cursor.currentList())
+                style = cursor.currentList()->format().style();
+            else
+                style = QTextListFormat::ListDisc;
+            marker = QTextBlockFormat::MarkerType::Unchecked;
+            break;
+        case 5:
+            if (cursor.currentList())
+                style = cursor.currentList()->format().style();
+            else
+                style = QTextListFormat::ListDisc;
+            marker = QTextBlockFormat::MarkerType::Checked;
+            break;
+        case 6:
+            style = QTextListFormat::ListDecimal;
+            break;
+        case 7:
+            style = QTextListFormat::ListLowerAlpha;
+            break;
+        case 8:
+            style = QTextListFormat::ListUpperAlpha;
+            break;
+        case 9:
+            style = QTextListFormat::ListLowerRoman;
+            break;
+        case 10:
+            style = QTextListFormat::ListUpperRoman;
+            break;
+        default:
+            break;
+    }
+
+    cursor.beginEditBlock();
+
+    QTextBlockFormat blockFmt = cursor.blockFormat();
+
+    if (style == QTextListFormat::ListStyleUndefined) {
+        blockFmt.setObjectIndex(-1);
+        int headingLevel = styleIndex >= 11 ? styleIndex - 11 + 1 : 0; // H1 to H6, or Standard
+        blockFmt.setHeadingLevel(headingLevel);
+        cursor.setBlockFormat(blockFmt);
+
+        int sizeAdjustment = headingLevel ? 4 - headingLevel : 0; // H1 to H6: +3 to -2
+        QTextCharFormat fmt;
+        fmt.setFontWeight(headingLevel ? QFont::Bold : QFont::Normal);
+        fmt.setProperty(QTextFormat::FontSizeAdjustment, sizeAdjustment);
+        cursor.select(QTextCursor::LineUnderCursor);
+        cursor.mergeCharFormat(fmt);
+        ui->textEdit->mergeCurrentCharFormat(fmt);
+    } else {
+        blockFmt.setMarker(marker);
+        cursor.setBlockFormat(blockFmt);
+        QTextListFormat listFmt;
+        if (cursor.currentList()) {
+            listFmt = cursor.currentList()->format();
+        } else {
+            listFmt.setIndent(blockFmt.indent() + 1);
+            blockFmt.setIndent(0);
+            cursor.setBlockFormat(blockFmt);
+        }
+        listFmt.setStyle(style);
+        cursor.createList(listFmt);
+    }
+
+    cursor.endEditBlock();
+}
+
+void MainWindow::textColor() {
+    QColor col = QColorDialog::getColor(ui->textEdit->textColor(), this);
+    if (!col.isValid())
+        return;
+    QTextCharFormat fmt;
+    fmt.setForeground(col);
+    mergeFormatOnWordOrSelection(fmt);
+    colorChanged(col);
+}
+
+void MainWindow::textAlign(QAction *action) {
+    if (action == ui->actionAlignLeft)
+        ui->textEdit->setAlignment(Qt::AlignLeft | Qt::AlignAbsolute);
+    else if (action == ui->actionAlignCenter)
+        ui->textEdit->setAlignment(Qt::AlignHCenter);
+    else if (action == ui->actionAlignRight)
+        ui->textEdit->setAlignment(Qt::AlignRight | Qt::AlignAbsolute);
+    else if (action == ui->actionAlignJustify)
+        ui->textEdit->setAlignment(Qt::AlignJustify);
+}
+
+void MainWindow::setChecked(bool checked) {
+    textStyle(checked ? 5 : 4);
+}
+
+void MainWindow::indent() {
+    modifyIndentation(1);
+}
+
+void MainWindow::unindent() {
+    modifyIndentation(-1);
+}
+
+void MainWindow::currentCharFormatChanged(const QTextCharFormat &format) {
+    std::cout << "Current: " << format.fontFamily().toStdString() << std::endl;
+    fontChanged(format.font());
+    colorChanged(format.foreground().color());
+}
+
+void MainWindow::cursorPositionChanged() {
+    alignmentChanged(ui->textEdit->alignment());
+    QTextList *list = ui->textEdit->textCursor().currentList();
+    if (list) {
+        switch (list->format().style()) {
+            case QTextListFormat::ListDisc:
+                comboStyle->setCurrentIndex(1);
+                break;
+            case QTextListFormat::ListCircle:
+                comboStyle->setCurrentIndex(2);
+                break;
+            case QTextListFormat::ListSquare:
+                comboStyle->setCurrentIndex(3);
+                break;
+            case QTextListFormat::ListDecimal:
+                comboStyle->setCurrentIndex(6);
+                break;
+            case QTextListFormat::ListLowerAlpha:
+                comboStyle->setCurrentIndex(7);
+                break;
+            case QTextListFormat::ListUpperAlpha:
+                comboStyle->setCurrentIndex(8);
+                break;
+            case QTextListFormat::ListLowerRoman:
+                comboStyle->setCurrentIndex(9);
+                break;
+            case QTextListFormat::ListUpperRoman:
+                comboStyle->setCurrentIndex(10);
+                break;
+            default:
+                comboStyle->setCurrentIndex(-1);
+                break;
+        }
+        switch (ui->textEdit->textCursor().block().blockFormat().marker()) {
+            case QTextBlockFormat::MarkerType::NoMarker:
+                ui->actionToggleCheckState->setChecked(false);
+                break;
+            case QTextBlockFormat::MarkerType::Unchecked:
+                comboStyle->setCurrentIndex(4);
+                ui->actionToggleCheckState->setChecked(false);
+                break;
+            case QTextBlockFormat::MarkerType::Checked:
+                comboStyle->setCurrentIndex(5);
+                ui->actionToggleCheckState->setChecked(true);
+                break;
+        }
+    } else {
+        int headingLevel = ui->textEdit->textCursor().blockFormat().headingLevel();
+        comboStyle->setCurrentIndex(headingLevel ? headingLevel + 10 : 0);
+    }
+}
+
+void MainWindow::clipboardDataChanged() {
+
+}
+
+void MainWindow::printPreview(QPrinter *) {
+
+}
+
+void MainWindow::setupFileActions() {
+
+}
+
+void MainWindow::setupEditActions() {
+    connect(ui->actionUndo, &QAction::triggered, ui->textEdit, &MTextEdit::undo);
+    connect(ui->actionRedo, &QAction::triggered, ui->textEdit, &MTextEdit::redo);
+#ifndef QT_NO_CLIPBOARD
+    connect(ui->actionCopy, &QAction::triggered, ui->textEdit, &MTextEdit::copy);
+    connect(ui->actionCut, &QAction::triggered, ui->textEdit, &MTextEdit::cut);
+    connect(ui->actionPaste, &QAction::triggered, ui->textEdit, &MTextEdit::paste);
+#endif
+}
+
+void MainWindow::setupTextActions() {
+    connect(ui->textEdit, &QTextEdit::currentCharFormatChanged, this, &MainWindow::currentCharFormatChanged);
+    connect(ui->textEdit, &QTextEdit::cursorPositionChanged, this, &MainWindow::cursorPositionChanged);
+    connect(ui->textEdit->document(), &QTextDocument::modificationChanged, ui->actionSave, &QAction::setEnabled);
+    connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &QWidget::setWindowModified);
+    connect(ui->textEdit->document(), &QTextDocument::undoAvailable, ui->actionUndo, &QAction::setEnabled);
+    connect(ui->textEdit->document(), &QTextDocument::redoAvailable, ui->actionRedo, &QAction::setEnabled);
+
+#ifndef QT_NO_CLIPBOARD
+    ui->actionCut->setEnabled(false);
+    connect(ui->textEdit, &QTextEdit::copyAvailable, ui->actionCut, &QAction::setEnabled);
+    ui->actionCopy->setEnabled(false);
+    connect(ui->textEdit, &QTextEdit::copyAvailable, ui->actionCopy, &QAction::setEnabled);
+
+    connect(QApplication::clipboard(), &QClipboard::dataChanged, this, &MainWindow::clipboardDataChanged);
+#endif
+
+    //connect(ui->actionTextBold, SIGNAL(triggered(bool)), this, SLOT(textBold()));
+    connect(ui->actionTextBold, &QAction::triggered, this, &MainWindow::textBold);
+    connect(ui->actionTextItalic, SIGNAL(triggered(bool)), this, SLOT(textItalic()));
+    connect(ui->actionTextUnderline, SIGNAL(triggered(bool)), this, SLOT(textUnderline()));
+    connect(ui->actionStrikeout, SIGNAL(triggered(bool)), this, SLOT(textStrikeout()));
+    connect(ui->actionIndentLess, SIGNAL(triggered(bool)), this, SLOT(indent()));
+    connect(ui->actionIndentMore, SIGNAL(triggered(bool)), this, SLOT(unident()));
+
+    QActionGroup *alignGroup = new QActionGroup(this);
+    connect(alignGroup, SIGNAL(triggered(QAction * )), this, SLOT(textAlign(QAction * )));
+    if (QApplication::isLeftToRight()) {
+        alignGroup->addAction(ui->actionAlignLeft);
+        alignGroup->addAction(ui->actionAlignCenter);
+        alignGroup->addAction(ui->actionAlignRight);
+    } else {
+        alignGroup->addAction(ui->actionAlignRight);
+        alignGroup->addAction(ui->actionAlignCenter);
+        alignGroup->addAction(ui->actionAlignLeft);
+    }
+    alignGroup->addAction(ui->actionAlignJustify);
+
+    connect(ui->actionTextColor, &QAction::triggered, this, &MainWindow::textColor);
+    connect(ui->actionTextBackgroundColor, &QAction::triggered, this, &MainWindow::textBackgroundColor);
+    connect(ui->actionToggleCheckState, &QAction::triggered, this, &MainWindow::setChecked);
+
+    comboStyle = new QComboBox(ui->toolBarFont);
+    ui->toolBarFont->addWidget(comboStyle);
+    comboStyle->addItem("Standard");
+    comboStyle->addItem("Bullet List (Disc)");
+    comboStyle->addItem("Bullet List (Circle)");
+    comboStyle->addItem("Bullet List (Square)");
+    comboStyle->addItem("Task List (Unchecked)");
+    comboStyle->addItem("Task List (Checked)");
+    comboStyle->addItem("Ordered List (Decimal)");
+    comboStyle->addItem("Ordered List (Alpha lower)");
+    comboStyle->addItem("Ordered List (Alpha upper)");
+    comboStyle->addItem("Ordered List (Roman lower)");
+    comboStyle->addItem("Ordered List (Roman upper)");
+    comboStyle->addItem("Heading 1");
+    comboStyle->addItem("Heading 2");
+    comboStyle->addItem("Heading 3");
+    comboStyle->addItem("Heading 4");
+    comboStyle->addItem("Heading 5");
+    comboStyle->addItem("Heading 6");
+
+    connect(comboStyle, SIGNAL(activated(int)), this, SLOT(textStyle(int)));
+
+    comboFont = new QFontComboBox(ui->toolBarFont);
+    ui->toolBarFont->addWidget(comboFont);
+
+    connect(comboFont, &QFontComboBox::textActivated, this, &MainWindow::textFamily);
+
+    comboSize = new QComboBox(ui->toolBarFont);
+    comboSize->setObjectName("comboSize");
+    ui->toolBarFont->addWidget(comboSize);
+    comboSize->setEditable(true);
+    const QList<int> standardSizes = QFontDatabase::standardSizes();
+    for (int size : standardSizes)
+        comboSize->addItem(QString::number(size));
+    comboSize->setCurrentIndex(standardSizes.indexOf(QApplication::font().pointSize()));
+
+    connect(ui->actionZoomIn, &QAction::triggered, this, &MainWindow::zoomIn);
+    connect(ui->actionZoomOut, &QAction::triggered, this, &MainWindow::zoomOut);
+    connect(comboSize, &QComboBox::textActivated, this, &MainWindow::textSize);
+
+    //connect(ui->textEdit, &MTextEdit::focusOut, this, &MainWindow::updateContent);
+}
+
+bool MainWindow::maybeSave() {
+    return false;
+}
+
+void MainWindow::setCurrentFileName(const QString &fileName) {
+
+}
+
+void MainWindow::modifyIndentation(int amount) {
+    QTextCursor cursor = ui->textEdit->textCursor();
+    cursor.beginEditBlock();
+    if (cursor.currentList()) {
+        QTextListFormat listFmt = cursor.currentList()->format();
+        // See whether the line above is the list we want to move this item into,
+        // or whether we need a new list.
+        QTextCursor above(cursor);
+        above.movePosition(QTextCursor::Up);
+        if (above.currentList() && listFmt.indent() + amount == above.currentList()->format().indent()) {
+            above.currentList()->add(cursor.block());
+        } else {
+            listFmt.setIndent(listFmt.indent() + amount);
+            cursor.createList(listFmt);
+        }
+    } else {
+        QTextBlockFormat blockFmt = cursor.blockFormat();
+        blockFmt.setIndent(blockFmt.indent() + amount);
+        cursor.setBlockFormat(blockFmt);
+    }
+    cursor.endEditBlock();
+}
+
+void MainWindow::mergeFormatOnWordOrSelection(const QTextCharFormat &format) {
+    QTextCursor cursor = ui->textEdit->textCursor();
+    if (!cursor.hasSelection())
+        cursor.select(QTextCursor::WordUnderCursor);
+    cursor.mergeCharFormat(format);
+    ui->textEdit->mergeCurrentCharFormat(format);
+    ui->textEdit->setFocus(Qt::TabFocusReason);
+}
+
+void MainWindow::fontChanged(const QFont &f) {
+    std::cout << "fontChange: " << f.family().toStdString() << ": " << f.pointSize() << std::endl;
+    comboFont->setCurrentIndex(comboFont->findText(f.family()));
+    comboSize->setCurrentIndex(comboSize->findText(QString::number(f.pointSize())));
+    ui->actionTextBold->setChecked(f.bold());
+    ui->actionTextItalic->setChecked(f.italic());
+    ui->actionTextUnderline->setChecked(f.underline());
+}
+
+void MainWindow::colorChanged(const QColor &c) {
+
+    //QPixmap pix(16, 16);
+    //pix.fill(c);
+    //actionTextColor->setIcon(pix);
+}
+
+void MainWindow::alignmentChanged(Qt::Alignment a) {
+    if (a & Qt::AlignLeft)
+        ui->actionAlignLeft->setChecked(true);
+    else if (a & Qt::AlignHCenter)
+        ui->actionAlignCenter->setChecked(true);
+    else if (a & Qt::AlignRight)
+        ui->actionAlignRight->setChecked(true);
+    else if (a & Qt::AlignJustify)
+        ui->actionAlignJustify->setChecked(true);
+}
+
+void MainWindow::textStrikeout() {
+    QTextCharFormat fmt;
+    fmt.setFontStrikeOut(ui->actionStrikeout->isChecked());
+    mergeFormatOnWordOrSelection(fmt);
+}
+
+void MainWindow::textBackgroundColor() {
+    QColor col = QColorDialog::getColor(ui->textEdit->textBackgroundColor(), this);
+    QTextCursor cursor = ui->textEdit->textCursor();
+    if (!cursor.hasSelection()) {
+        cursor.select(QTextCursor::WordUnderCursor);
+    }
+    QTextCharFormat fmt = cursor.charFormat();
+    if (col.isValid()) {
+        fmt.setBackground(col);
+    } else {
+        fmt.clearBackground();
+    }
+    cursor.setCharFormat(fmt);
+    ui->textEdit->setCurrentCharFormat(fmt);
+    bgColorChanged(col);
+}
+
+void MainWindow::bgColorChanged(const QColor &c) {
+    /*QPixmap pix(16, 16);
+    if (c.isValid()) {
+        pix.fill(c);
+    } else {
+        pix.fill(QApplication::palette().window().color());
+    }
+    f_bgcolor->setIcon(pix);*/
+}
+
+void MainWindow::zoomIn() {
+    auto current = comboSize->currentIndex();
+    if (current - 1 > 0) {
+        comboSize->setCurrentIndex(current - 1);
+        textSize(comboSize->currentText());
+    }
+}
+
+void MainWindow::zoomOut() {
+    auto max = comboSize->count();
+    auto current = comboSize->currentIndex();
+    if (current + 1 < max) {
+        comboSize->setCurrentIndex(current + 1);
+        textSize(comboSize->currentText());
+    }
+}
+
+void MainWindow::setTextEditEnableState(bool state) {
+    ui->textEdit->setEnabled(state);
+    ui->toolBarRichEditor->setEnabled(state);
+    ui->toolBarFont->setEnabled(state);
+}
+
+void MainWindow::updateContent() {
+    std::cout << "Update Content" << std::endl;
+    if(_current_item != nullptr && _current_item->sNoteItemType() == SNoteItemType::Note) {
+        if(ui->textEdit->document()->isModified()) {
+            _current_item->setContent(ui->textEdit->toHtml());
+            std::cout << "SaveIt" << std::endl;
+        }
+    }
+}

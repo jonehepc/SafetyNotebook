@@ -16,6 +16,7 @@
     <file>png/connect.png</file>
     <file>png/connect1.png</file>
     <file>png/copy.png</file>
+    <file>png/format-font-color-front.png</file>
     <file>png/cut.png</file>
     <file>png/delete.png</file>
     <file>png/Delete1.png</file>
@@ -24,6 +25,153 @@
     <file>png/exit1.png</file>
     <file>png/export.png</file>
     <file>png/import.png</file>
+    <file>png/zoom-out-symbolic.symbolic.png</file>
+    <file>png/zoom-original-symbolic.symbolic.png</file>
+    <file>png/zoom-in-symbolic.symbolic.png</file>
+    <file>png/zoom-fit-best-symbolic.symbolic.png</file>
+    <file>png/window-restore-symbolic.symbolic.png</file>
+    <file>png/window-minimize-symbolic.symbolic.png</file>
+    <file>png/window-maximize-symbolic.symbolic.png</file>
+    <file>png/window-close-symbolic.symbolic.png</file>
+    <file>png/view-sort-descending-symbolic.symbolic.png</file>
+    <file>png/view-sort-ascending-symbolic.symbolic.png</file>
+    <file>png/view-restore-symbolic.symbolic.png</file>
+    <file>png/view-refresh-symbolic.symbolic.png</file>
+    <file>png/view-pin-symbolic.symbolic.png</file>
+    <file>png/view-paged-symbolic.symbolic.png</file>
+    <file>png/view-more-symbolic.symbolic.png</file>
+    <file>png/view-more-horizontal-symbolic.symbolic.png</file>
+    <file>png/view-mirror-symbolic.symbolic.png</file>
+    <file>png/view-list-symbolic.symbolic.png</file>
+    <file>png/view-grid-symbolic.symbolic.png</file>
+    <file>png/view-fullscreen-symbolic.symbolic.png</file>
+    <file>png/view-dual-symbolic.symbolic.png</file>
+    <file>png/view-continuous-symbolic.symbolic.png</file>
+    <file>png/view-app-grid-symbolic.symbolic.png</file>
+    <file>png/tools-check-spelling-symbolic.symbolic.png</file>
+    <file>png/tab-new-symbolic.symbolic.png</file>
+    <file>png/system-switch-user-symbolic.symbolic.png</file>
+    <file>png/system-shutdown-symbolic.symbolic.png</file>
+    <file>png/system-search-symbolic.symbolic.png</file>
+    <file>png/system-run-symbolic.symbolic.png</file>
+    <file>png/star-new-symbolic.symbolic.png</file>
+    <file>png/send-to-symbolic.symbolic.png</file>
+    <file>png/selection-start-symbolic.symbolic.png</file>
+    <file>png/selection-start-symbolic-rtl.symbolic.png</file>
+    <file>png/selection-end-symbolic.symbolic.png</file>
+    <file>png/selection-end-symbolic-rtl.symbolic.png</file>
+    <file>png/process-stop-symbolic.symbolic.png</file>
+    <file>png/pan-up-symbolic.symbolic.png</file>
+    <file>png/pan-start-symbolic.symbolic.png</file>
+    <file>png/pan-start-symbolic-rtl.symbolic.png</file>
+    <file>png/pan-end-symbolic.symbolic.png</file>
+    <file>png/pan-end-symbolic-rtl.symbolic.png</file>
+    <file>png/pan-down-symbolic.symbolic.png</file>
+    <file>png/open-menu-symbolic.symbolic.png</file>
+    <file>png/object-select-symbolic.symbolic.png</file>
+    <file>png/object-rotate-right-symbolic.symbolic.png</file>
+    <file>png/object-rotate-left-symbolic.symbolic.png</file>
+    <file>png/object-flip-vertical-symbolic.symbolic.png</file>
+    <file>png/object-flip-horizontal-symbolic.symbolic.png</file>
+    <file>png/media-view-subtitles-symbolic.symbolic.png</file>
+    <file>png/media-skip-forward-symbolic.symbolic.png</file>
+    <file>png/media-skip-forward-symbolic-rtl.symbolic.png</file>
+    <file>png/media-skip-backward-symbolic.symbolic.png</file>
+    <file>png/media-skip-backward-symbolic-rtl.symbolic.png</file>
+    <file>png/media-seek-forward-symbolic.symbolic.png</file>
+    <file>png/media-seek-forward-symbolic-rtl.symbolic.png</file>
+    <file>png/media-seek-backward-symbolic.symbolic.png</file>
+    <file>png/media-seek-backward-symbolic-rtl.symbolic.png</file>
+    <file>png/media-record-symbolic.symbolic.png</file>
+    <file>png/media-playback-stop-symbolic.symbolic.png</file>
+    <file>png/media-playback-start-symbolic.symbolic.png</file>
+    <file>png/media-playback-start-symbolic-rtl.symbolic.png</file>
+    <file>png/media-playback-pause-symbolic.symbolic.png</file>
+    <file>png/media-eject-symbolic.symbolic.png</file>
+    <file>png/mark-location-symbolic.symbolic.png</file>
+    <file>png/mail-send-symbolic.symbolic.png</file>
+    <file>png/mail-send-receive-symbolic.symbolic.png</file>
+    <file>png/mail-mark-important-symbolic.symbolic.png</file>
+    <file>png/list-remove-symbolic.symbolic.png</file>
+    <file>png/list-remove-all-symbolic.symbolic.png</file>
+    <file>png/list-add-symbolic.symbolic.png</file>
+    <file>png/insert-text-symbolic.symbolic.png</file>
+    <file>png/insert-object-symbolic.symbolic.png</file>
+    <file>png/insert-link-symbolic.symbolic.png</file>
+    <file>png/insert-image-symbolic.symbolic.png</file>
+    <file>png/help-about-symbolic.symbolic.png</file>
+    <file>png/go-up-symbolic.symbolic.png</file>
+    <file>png/go-top-symbolic.symbolic.png</file>
+    <file>png/go-previous-symbolic.symbolic.png</file>
+    <file>png/go-previous-symbolic-rtl.symbolic.png</file>
+    <file>png/go-next-symbolic.symbolic.png</file>
+    <file>png/go-next-symbolic-rtl.symbolic.png</file>
+    <file>png/go-last-symbolic.symbolic.png</file>
+    <file>png/go-last-symbolic-rtl.symbolic.png</file>
+    <file>png/go-jump-symbolic.symbolic.png</file>
+    <file>png/go-home-symbolic.symbolic.png</file>
+    <file>png/go-first-symbolic.symbolic.png</file>
+    <file>png/go-first-symbolic-rtl.symbolic.png</file>
+    <file>png/go-down-symbolic.symbolic.png</file>
+    <file>png/go-bottom-symbolic.symbolic.png</file>
+    <file>png/format-text-underline-symbolic.symbolic.png</file>
+    <file>png/format-text-strikethrough-symbolic.symbolic.png</file>
+    <file>png/format-text-italic-symbolic.symbolic.png</file>
+    <file>png/format-text-direction-symbolic.symbolic.png</file>
+    <file>png/format-text-direction-symbolic-rtl.symbolic.png</file>
+    <file>png/format-text-bold-symbolic.symbolic.png</file>
+    <file>png/format-justify-right-symbolic.symbolic.png</file>
+    <file>png/format-justify-left-symbolic.symbolic.png</file>
+    <file>png/format-justify-fill-symbolic.symbolic.png</file>
+    <file>png/format-justify-center-symbolic.symbolic.png</file>
+    <file>png/format-indent-more-symbolic.symbolic.png</file>
+    <file>png/format-indent-more-symbolic-rtl.symbolic.png</file>
+    <file>png/format-indent-less-symbolic.symbolic.png</file>
+    <file>png/format-indent-less-symbolic-rtl.symbolic.png</file>
+    <file>png/font-select-symbolic.symbolic.png</file>
+    <file>png/folder-new-symbolic.symbolic.png</file>
+    <file>png/focus-windows-symbolic.symbolic.png</file>
+    <file>png/focus-top-bar-symbolic.symbolic.png</file>
+    <file>png/focus-legacy-systray-symbolic.symbolic.png</file>
+    <file>png/find-location-symbolic.symbolic.png</file>
+    <file>png/error-correct-symbolic.symbolic.png</file>
+    <file>png/edit-undo-symbolic.symbolic.png</file>
+    <file>png/edit-undo-symbolic-rtl.symbolic.png</file>
+    <file>png/edit-select-symbolic.symbolic.png</file>
+    <file>png/edit-select-all-symbolic.symbolic.png</file>
+    <file>png/edit-redo-symbolic.symbolic.png</file>
+    <file>png/edit-redo-symbolic-rtl.symbolic.png</file>
+    <file>png/edit-paste-symbolic.symbolic.png</file>
+    <file>png/edit-find-symbolic.symbolic.png</file>
+    <file>png/edit-find-replace-symbolic.symbolic.png</file>
+    <file>png/edit-delete-symbolic.symbolic.png</file>
+    <file>png/edit-cut-symbolic.symbolic.png</file>
+    <file>png/edit-copy-symbolic.symbolic.png</file>
+    <file>png/edit-clear-symbolic.symbolic.png</file>
+    <file>png/edit-clear-symbolic-rtl.symbolic.png</file>
+    <file>png/edit-clear-all-symbolic.symbolic.png</file>
+    <file>png/document-send-symbolic.symbolic.png</file>
+    <file>png/document-save-symbolic.symbolic.png</file>
+    <file>png/document-save-as-symbolic.symbolic.png</file>
+    <file>png/document-revert-symbolic.symbolic.png</file>
+    <file>png/document-revert-symbolic-rtl.symbolic.png</file>
+    <file>png/document-properties-symbolic.symbolic.png</file>
+    <file>png/document-print-symbolic.symbolic.png</file>
+    <file>png/document-print-preview-symbolic.symbolic.png</file>
+    <file>png/document-page-setup-symbolic.symbolic.png</file>
+    <file>png/document-open-symbolic.symbolic.png</file>
+    <file>png/document-open-recent-symbolic.symbolic.png</file>
+    <file>png/document-new-symbolic.symbolic.png</file>
+    <file>png/document-edit-symbolic.symbolic.png</file>
+    <file>png/contact-new-symbolic.symbolic.png</file>
+    <file>png/color-select-symbolic.symbolic.png</file>
+    <file>png/call-stop-symbolic.symbolic.png</file>
+    <file>png/call-start-symbolic.symbolic.png</file>
+    <file>png/bookmark-new-symbolic.symbolic.png</file>
+    <file>png/appointment-new-symbolic.symbolic.png</file>
+    <file>png/address-book-new-symbolic.symbolic.png</file>
+    <file>png/application-exit-symbolic.symbolic.png</file>
+    <file>png/action-unavailable-symbolic.symbolic.png</file>
     <file>png/import1.png</file>
     <file>png/lock.png</file>
     <file>png/new.png</file>
@@ -39,6 +187,7 @@
     <file>png/static.png</file>
     <file>png/unlock.png</file>
     <file>png/vault.png</file>
+    <file>png/format-font-color.png</file>
     <file>png/notepad.png</file>
   </qresource>
 </RCC>

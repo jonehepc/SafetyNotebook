@@ -58,6 +58,25 @@ QByteArray aes_decrypt(const QByteArray &key, const QByteArray &data) {
     return QAESEncryption::Decrypt(level, mode, data, key, iv, padding);
 }
 
+QByteArray aes_decrypt_old(const QByteArray &key, const QByteArray &data) {
+    QByteArray iv("0123456789ABCDEF");
+    QAESEncryption::MODE mode = QAESEncryption::CBC;
+    QAESEncryption::AES level = QAESEncryption::AES_128;
+    QAESEncryption::PADDING padding = QAESEncryption::X923;
+    switch (key.size()) {
+        case 16:
+            level = QAESEncryption::AES_128;
+            break;
+        case 32:
+            level = QAESEncryption::AES_192;
+            break;
+        case 64:
+            level = QAESEncryption::AES_256;
+            break;
+    }
+    return QAESEncryption::Decrypt(level, mode, data, key, iv, padding);
+}
+
 SNoteItem *load_item_from_path(const QString &path, const QString &key) {
     QFile file(path);
     file.open(QIODevice::ReadOnly);
@@ -73,6 +92,21 @@ SNoteItem *load_item_from_path(const QString &path, const QString &key) {
         }
     }
     auto ret = SNoteItem::fromJson(jsonArray);
+
+    // 如果打开失败，则尝试使用md5密钥+aes128 ecb模式。
+    if (ret == nullptr) {
+        b_key = md5_sum(key.toUtf8());
+        jsonArray = aes_decrypt_old(b_key, data);
+        s_len = jsonArray.length();
+        for (int i = 0; i < s_len; i++) {
+            if (jsonArray[s_len - i - 1] == '\0') {
+                jsonArray.remove(s_len - i - 1, 1);
+            } else {
+                break;
+            }
+        }
+        ret = SNoteItem::fromJson(jsonArray);
+    }
     return ret;
 }
 
