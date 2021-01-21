@@ -1,9 +1,11 @@
 ﻿#ifndef QAESENCRYPTION_H
 #define QAESENCRYPTION_H
 
-#include <QObject>
-#include <QByteArray>
+#include <QtCore/QObject>
 
+QT_BEGIN_NAMESPACE
+class QByteArray;
+QT_END_NAMESPACE
 
 class QAESEncryption : public QObject {
 Q_OBJECT

@@ -1,4 +1,5 @@
 ﻿#include "qaesencryption.h"
+#include <QtCore/QByteArray>
 
 /*
  * Static Functions

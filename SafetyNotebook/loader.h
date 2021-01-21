@@ -1,9 +1,10 @@
 ﻿#ifndef LOADER_H
 #define LOADER_H
 
-#include "snoteitem.h"
-#include "settings.h"
-#include <QString>
+class QString;
+class QByteArray;
+class SNoteItem;
+struct RemoteSettings;
 
 QByteArray md5_sum(const QByteArray &data);
 

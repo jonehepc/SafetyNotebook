@@ -1,37 +1,28 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include <QMainWindow>
-#include <QtCore/QItemSelectionModel>
-#include <QtGui/QStandardItemModel>
-#include "settings.h"
-#include "snoteitem.h"
+#include <QtWidgets/QMainWindow>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 class QAction;
-
 class QComboBox;
-
 class QFontComboBox;
-
 class QTextEdit;
-
 class QTextCharFormat;
-
-class QMenu;
-
 class QPrinter;
-
+class QStandardItemModel;
+class QItemSelection;
 QT_END_NAMESPACE
+
+class Settings;
+class SNoteItem;
 
 class MainWindow : public QMainWindow {
 Q_OBJECT
 
 public:
     explicit MainWindow(QWidget *parent = nullptr);
-
-    //~MainWindow();
 
     void initUi();
 
@@ -188,9 +179,9 @@ private:
     void alignmentChanged(Qt::Alignment a);
 
 private:
-    QComboBox *comboStyle;
-    QFontComboBox *comboFont;
-    QComboBox *comboSize;
+    QComboBox *comboStyle{};
+    QFontComboBox *comboFont{};
+    QComboBox *comboSize{};
 
 private:
     Ui::MainWindow *ui;
@@ -198,13 +189,10 @@ private:
     Settings *_settings = nullptr;
     QString _file_path;
     bool _file_opened = false;
-    //bool _file_new = false;
     bool _file_modified;
-    //bool _current_modified = false;
     SNoteItem *_note = nullptr;
     QString _password;
     QStandardItemModel *_model = nullptr;
-    //SNoteItem *_current_note = nullptr;
     SNoteItem *_current_item = nullptr;
     bool _current_changed = false;
     bool _do_note_change_edition = false;

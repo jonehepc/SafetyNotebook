@@ -1,13 +1,14 @@
-﻿#include "loader.h"
-#include "snoteitem.h"
+﻿#include <QtCore/QString>
 #include <QtCore/QCryptographicHash>
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
 #include <QtCore/QFile>
-#include <QtCore/QUuid>
 #include <qaesencryption.h>
-#include <QtCore/QDebug>
+
+#include "loader.h"
+#include "snoteitem.h"
+#include "settings.h"
 
 QByteArray md5_sum(const QByteArray &data) {
     QByteArray sum = QCryptographicHash::hash(data, QCryptographicHash::Md5);
