@@ -8,6 +8,7 @@
 #include <QtCore/QDebug>
 #include <QtWidgets/QMessageBox>
 #include <QtWidgets/QFileDialog>
+#include <QtGui/QBitmap>
 #include <QtGui/QCloseEvent>
 #include <QtGui/QTextList>
 #include <QtGui/QClipboard>
@@ -340,8 +341,6 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
         ui->lineEditTitle->setText(note->title());
         switch (note->sNoteItemType()) {
             case SNoteItemType::Partition:
-                //_current_note = note;
-                //_current_item = nullptr;
                 setEditActions(false);
                 setDirActions(true);
                 ui->actionAdd->setEnabled(true);
@@ -351,16 +350,13 @@ void MainWindow::onTreeViewSelectionChanged(const QItemSelection &selected, cons
                     ui->actionRemovePartition->setEnabled(false);
                     ui->lineEditTitle->setEnabled(false);
                 }
-                //ui->textEdit->hide();
                 break;
             case SNoteItemType::Note:
-                //_current_item = note;
                 setEditActions(true);
                 ui->actionAdd->setEnabled(false);
                 setDirActions(false);
                 ui->textEdit->setHtml(_current_item->content());
                 setTextEditEnableState(true);
-                //ui->textEdit->show();
                 break;
             default:
                 break;
@@ -459,7 +455,6 @@ bool MainWindow::load_note() {
     _note = load_item_from_path(_file_path, _password);
     if (_note == nullptr) {
         displayMessageOnStatusBar(QStringLiteral("加载笔记失败。"));
-        //_note = SNoteItem::makeRootItem();
         return false;
     }
     _model->appendRow(_note);
@@ -481,13 +476,7 @@ void MainWindow::refreshTreeView() {
     if (_current_item != nullptr) {
         ui->treeView->selectionModel()->setCurrentIndex(_model->indexFromItem(_current_item),
                                                         QItemSelectionModel::Select);
-    }/* else if (_current_note != nullptr) {
-        auto old = _do_note_change_edition;
-        _do_note_change_edition = true;
-        ui->treeView->selectionModel()->setCurrentIndex(_model->indexFromItem(_current_note),
-                                                        QItemSelectionModel::Select);
-        _do_note_change_edition = old;
-    }*/
+    }
     _in_refresh = false;
 }
 
@@ -786,6 +775,7 @@ void MainWindow::currentCharFormatChanged(const QTextCharFormat &format) {
     std::cout << "Current: " << format.fontFamily().toStdString() << std::endl;
     fontChanged(format.font());
     colorChanged(format.foreground().color());
+    bgColorChanged(format.background().color());
 }
 
 void MainWindow::cursorPositionChanged() {
@@ -863,12 +853,16 @@ void MainWindow::setupEditActions() {
 }
 
 void MainWindow::setupTextActions() {
+    ui->textEdit->setTextBackgroundColor(Qt::white);
+    ui->textEdit->setTextColor(Qt::black);
+
     connect(ui->textEdit, &QTextEdit::currentCharFormatChanged, this, &MainWindow::currentCharFormatChanged);
     connect(ui->textEdit, &QTextEdit::cursorPositionChanged, this, &MainWindow::cursorPositionChanged);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, ui->actionSave, &QAction::setEnabled);
     connect(ui->textEdit->document(), &QTextDocument::modificationChanged, this, &QWidget::setWindowModified);
     connect(ui->textEdit->document(), &QTextDocument::undoAvailable, ui->actionUndo, &QAction::setEnabled);
     connect(ui->textEdit->document(), &QTextDocument::redoAvailable, ui->actionRedo, &QAction::setEnabled);
+
 
 #ifndef QT_NO_CLIPBOARD
     ui->actionCut->setEnabled(false);
@@ -997,10 +991,16 @@ void MainWindow::fontChanged(const QFont &f) {
 }
 
 void MainWindow::colorChanged(const QColor &c) {
+    QPixmap px(QString::fromUtf8(":/png/format-font-color.png"));
+    QImage img = px.toImage();
+    for (int x = 37; x < 475; x++) {
+        for (int y = 390; y < 512; y++) {
+            img.setPixelColor(x, y, c);
+        }
+    }
 
-    //QPixmap pix(16, 16);
-    //pix.fill(c);
-    //actionTextColor->setIcon(pix);
+    ui->actionTextColor->setIcon(QPixmap::fromImage(img));
+
 }
 
 void MainWindow::alignmentChanged(Qt::Alignment a) {
@@ -1038,13 +1038,12 @@ void MainWindow::textBackgroundColor() {
 }
 
 void MainWindow::bgColorChanged(const QColor &c) {
-    /*QPixmap pix(16, 16);
-    if (c.isValid()) {
-        pix.fill(c);
-    } else {
-        pix.fill(QApplication::palette().window().color());
-    }
-    f_bgcolor->setIcon(pix);*/
+    QPixmap px(QString::fromUtf8(":/png/format-font-color-front.png"));
+    QPixmap pxr(px.size());
+    pxr.fill(c);
+    pxr.setMask(px.createMaskFromColor(Qt::transparent));
+
+    ui->actionTextBackgroundColor->setIcon(pxr);
 }
 
 void MainWindow::zoomIn() {
@@ -1072,8 +1071,8 @@ void MainWindow::setTextEditEnableState(bool state) {
 
 void MainWindow::updateContent() {
     std::cout << "Update Content" << std::endl;
-    if(_current_item != nullptr && _current_item->sNoteItemType() == SNoteItemType::Note) {
-        if(ui->textEdit->document()->isModified()) {
+    if (_current_item != nullptr && _current_item->sNoteItemType() == SNoteItemType::Note) {
+        if (ui->textEdit->document()->isModified()) {
             _current_item->setContent(ui->textEdit->toHtml());
             std::cout << "SaveIt" << std::endl;
         }
