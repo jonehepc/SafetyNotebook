@@ -7,9 +7,10 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QJsonArray>
+#include <QtCore/QUuid>
 
 
-SNoteItem::SNoteItem() : _type(SNoteItemType::Note) {
+SNoteItem::SNoteItem() : _type(SNoteItemType::Note), _id(new QUuid()) {
     setEditable(false);
 }
 
@@ -21,7 +22,7 @@ QVariant SNoteItem::data(int role) const {
 }
 
 SNoteItem::SNoteItem(const QUuid &id, const QString &title, const QString &content, SNoteItemType type) {
-    _id = id;
+    _id = new QUuid(id);
     _title = title;
     _content = content;
     _type = type;
@@ -29,7 +30,7 @@ SNoteItem::SNoteItem(const QUuid &id, const QString &title, const QString &conte
 }
 
 QUuid SNoteItem::id() const {
-    return _id;
+    return *_id;
 }
 
 QString SNoteItem::title() const {
@@ -41,7 +42,7 @@ QString SNoteItem::content() const {
 }
 
 void SNoteItem::setId(const QUuid &id) {
-    _id = id;
+    *_id = id;
 }
 
 void SNoteItem::setTitle(const QString &title) {

@@ -10,13 +10,8 @@ PasswordDialog::PasswordDialog(QWidget *parent) :
     initSignalAndSLots();
 }
 
-PasswordDialog::~PasswordDialog()
-{
-    delete ui;
-}
-
 void PasswordDialog::initSignalAndSLots() {
-    connect(ui->pushButtonOK, SIGNAL(clicked()), this, SLOT(accept()));
+    connect(ui->pushButtonOK, &QPushButton::clicked, this, &PasswordDialog::accept);
 }
 
 QString PasswordDialog::getPassword() const {

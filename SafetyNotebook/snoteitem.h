@@ -6,7 +6,10 @@
 #define SECNOTE_SNOTEITEM_H
 
 #include <QtGui/QStandardItem>
-#include <QtCore/QUuid>
+
+QT_BEGIN_NAMESPACE
+class QUuid;
+QT_END_NAMESPACE
 
 enum SNoteItemType {
     Partition = 0,
@@ -50,7 +53,7 @@ public:
     static SNoteItem *makeRootItem();
 
 private:
-    QUuid _id;
+    QUuid* _id{};
     QString _title;
     QString _content;
     QList<SNoteItem *> _childrens;

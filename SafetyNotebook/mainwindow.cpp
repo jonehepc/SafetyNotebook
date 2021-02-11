@@ -1,5 +1,6 @@
 #include <exception>
 #include <QtCore/QDebug>
+#include <QtCore/QUuid>
 #include <QtGui/QBitmap>
 #include <QtGui/QClipboard>
 #include <QtGui/QCloseEvent>
@@ -285,36 +286,31 @@ void MainWindow::init_remote() {
  * @brief: 关联信号和处理槽。
  * */
 void MainWindow::initSignalAndSlots() {
-    connect(this, SIGNAL(fileModifyChanged(bool)), this, SLOT(onFileModifyChanged(bool)));
-
-    connect(ui->actionAboutQt, SIGNAL(triggered()), this, SLOT(onActionAboutQtTriggered()));
-    connect(ui->actionAbout, SIGNAL(triggered()), this, SLOT(onActionAboutTriggered()));
-    connect(ui->actionAdd, SIGNAL(triggered()), this, SLOT(onActionAddTriggered()));
-    connect(ui->actionClose, SIGNAL(triggered()), this, SLOT(onActionCloseTriggered()));
-    connect(ui->actionCopy, SIGNAL(triggered()), this, SLOT(onActionCopyTriggered()));
-    connect(ui->actionCut, SIGNAL(triggered()), this, SLOT(onActionCutTriggered()));
-    connect(ui->actionDelete, SIGNAL(triggered()), this, SLOT(onActionDeleteTriggered()));
-    connect(ui->actionEdit, SIGNAL(triggered()), this, SLOT(onActionEditTriggered()));
-    connect(ui->actionExit, SIGNAL(triggered()), this, SLOT(onActionExitTriggered()));
-    connect(ui->actionGenPassword, SIGNAL(triggered()), this, SLOT(onActionGenPasswordTriggered()));
-    connect(ui->actionNew, SIGNAL(triggered()), this, SLOT(onActionNewTriggered()));
-    connect(ui->actionOpen, SIGNAL(triggered()), this, SLOT(onActionOpenTriggered()));
-    connect(ui->actionOpenOnline, SIGNAL(triggered()), this, SLOT(onActionOpenOnlineTriggered()));
-    connect(ui->actionPaste, SIGNAL(triggered()), this, SLOT(onActionPasteTriggered()));
-    connect(ui->actionSave, SIGNAL(triggered()), this, SLOT(onActionSaveTriggered()));
-    connect(ui->actionSave_as, SIGNAL(triggered()), this, SLOT(onActionSave_asTriggered()));
-    connect(ui->actionSearch, SIGNAL(triggered()), this, SLOT(onActionSearchTriggered()));
-    connect(ui->actionSettings, SIGNAL(triggered()), this, SLOT(onActionSettingsTriggered()));
-    connect(ui->actionAddPartition, SIGNAL(triggered()), this, SLOT(onActionAddPartitionTriggered()));
-    connect(ui->actionRemovePartition, SIGNAL(triggered()), this, SLOT(onActionRemovePartitionTriggered()));
-
-    connect(ui->textEdit, SIGNAL(textChanged()), this, SLOT(onTextEdited()));
-    connect(ui->lineEditTitle, SIGNAL(textEdited(const QString &)), this, SLOT(onTextEdited(const QString&)));
+    connect(ui->actionAboutQt, &QAction::triggered, this, &MainWindow::onActionAboutQtTriggered);
+    connect(ui->actionAbout, &QAction::triggered, this, &MainWindow::onActionAboutTriggered);
+    connect(ui->actionAdd, &QAction::triggered, this, &MainWindow::onActionAddTriggered);
+    connect(ui->actionClose, &QAction::triggered, this, &MainWindow::onActionCloseTriggered);
+    connect(ui->actionCopy, &QAction::triggered, this, &MainWindow::onActionCopyTriggered);
+    connect(ui->actionCut, &QAction::triggered, this, &MainWindow::onActionCutTriggered);
+    connect(ui->actionDelete, &QAction::triggered, this, &MainWindow::onActionDeleteTriggered);
+    connect(ui->actionEdit, &QAction::triggered, this, &MainWindow::onActionEditTriggered);
+    connect(ui->actionExit, &QAction::triggered, this, &MainWindow::onActionExitTriggered);
+    connect(ui->actionGenPassword, &QAction::triggered, this, &MainWindow::onActionGenPasswordTriggered);
+    connect(ui->actionNew, &QAction::triggered, this, &MainWindow::onActionNewTriggered);
+    connect(ui->actionOpen, &QAction::triggered, this, &MainWindow::onActionOpenTriggered);
+    connect(ui->actionOpenOnline, &QAction::triggered, this, &MainWindow::onActionOpenOnlineTriggered);
+    connect(ui->actionPaste, &QAction::triggered, this, &MainWindow::onActionPasteTriggered);
+    connect(ui->actionSave, &QAction::triggered, this, &MainWindow::onActionSaveTriggered);
+    connect(ui->actionSave_as, &QAction::triggered, this, &MainWindow::onActionSave_asTriggered);
+    connect(ui->actionSearch, &QAction::triggered, this, &MainWindow::onActionSearchTriggered);
+    connect(ui->actionSettings, &QAction::triggered, this, &MainWindow::onActionSettingsTriggered);
+    connect(ui->actionAddPartition, &QAction::triggered, this, &MainWindow::onActionAddPartitionTriggered);
+    connect(ui->actionRemovePartition, &QAction::triggered, this, &MainWindow::onActionRemovePartitionTriggered);
+    connect(ui->textEdit, &MTextEdit::textChanged, this, &MainWindow::textChanged1);
+    connect(ui->lineEditTitle, &QLineEdit::textChanged, this, &MainWindow::textChanged);
 
     auto selectionModel = ui->treeView->selectionModel();
-    connect(selectionModel, SIGNAL(selectionChanged(const QItemSelection &, const QItemSelection &)), this,
-            SLOT(onTreeViewSelectionChanged(const QItemSelection &, const QItemSelection &)));
-
+    connect(selectionModel, &QItemSelectionModel::selectionChanged, this, &MainWindow::onTreeViewSelectionChanged);
 }
 
 /**
@@ -763,15 +759,6 @@ void MainWindow::onLineEditTitleEditFinished() {
         refreshTreeView();
 }
 
-/**
- * @brief: 文本编辑控件的文本内容发生改变。
- *
- * @param text: 文本内容。
- * */
-void MainWindow::onTextEdited(const QString &text) {
-    if (_current_item != nullptr && !_do_note_change_edition)
-        onLineEditTitleEditFinished();
-}
 
 /**
  * @brief: 笔记树选择变化。
@@ -989,16 +976,15 @@ void MainWindow::setupTextActions() {
     connect(QApplication::clipboard(), &QClipboard::dataChanged, this, &MainWindow::clipboardDataChanged);
 #endif
 
-    //connect(ui->actionTextBold, SIGNAL(triggered(bool)), this, SLOT(textBold()));
     connect(ui->actionTextBold, &QAction::triggered, this, &MainWindow::textBold);
-    connect(ui->actionTextItalic, SIGNAL(triggered(bool)), this, SLOT(textItalic()));
-    connect(ui->actionTextUnderline, SIGNAL(triggered(bool)), this, SLOT(textUnderline()));
-    connect(ui->actionStrikeout, SIGNAL(triggered(bool)), this, SLOT(textStrikeout()));
-    connect(ui->actionIndentLess, SIGNAL(triggered(bool)), this, SLOT(indent()));
-    connect(ui->actionIndentMore, SIGNAL(triggered(bool)), this, SLOT(unident()));
+    connect(ui->actionTextItalic, &QAction::triggered, this, &MainWindow::textItalic);
+    connect(ui->actionTextUnderline, &QAction::triggered, this, &MainWindow::textUnderline);
+    connect(ui->actionStrikeout, &QAction::triggered, this, &MainWindow::textStrikeout);
+    connect(ui->actionIndentLess, &QAction::triggered, this, &MainWindow::indent);
+    connect(ui->actionIndentMore, &QAction::triggered, this, &MainWindow::unindent);
 
-    QActionGroup *alignGroup = new QActionGroup(this);
-    connect(alignGroup, SIGNAL(triggered(QAction * )), this, SLOT(textAlign(QAction * )));
+    auto *alignGroup = new QActionGroup(this);
+    connect(alignGroup, &QActionGroup::triggered, this, &MainWindow::textAlign);
     if (QApplication::isLeftToRight()) {
         alignGroup->addAction(ui->actionAlignLeft);
         alignGroup->addAction(ui->actionAlignCenter);
@@ -1034,7 +1020,7 @@ void MainWindow::setupTextActions() {
     comboStyle->addItem("Heading 5");
     comboStyle->addItem("Heading 6");
 
-    connect(comboStyle, SIGNAL(activated(int)), this, SLOT(textStyle(int)));
+    connect(comboStyle, QOverload<int>::of(&QComboBox::activated), this, &MainWindow::textStyle);
 
     comboFont = new QFontComboBox(ui->toolBarFont);
     ui->toolBarFont->addWidget(comboFont);
@@ -1101,6 +1087,26 @@ void MainWindow::textBold() {
     QTextCharFormat fmt;
     fmt.setFontWeight(ui->actionTextBold->isChecked() ? QFont::Bold : QFont::Normal);
     mergeFormatOnWordOrSelection(fmt);
+}
+
+/**
+ * @brief: 文本编辑控件的文本内容发生改变。
+ *
+ * @param text: 文本内容。
+ * */
+void MainWindow::textChanged(const QString &text) {
+    if (_current_item != nullptr && !_do_note_change_edition)
+        onLineEditTitleEditFinished();
+}
+
+/**
+ * @brief: 文本编辑控件的文本内容发生改变。
+ *
+ * @param text: 文本内容。
+ * */
+void MainWindow::textChanged1() {
+    if (_current_item != nullptr && !_do_note_change_edition)
+        onLineEditTitleEditFinished();
 }
 
 /**

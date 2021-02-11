@@ -1,7 +1,7 @@
 #ifndef NEWDIRDIALOG_H
 #define NEWDIRDIALOG_H
 
-#include <QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class DirNameDialog;
@@ -13,11 +13,10 @@ class NewDirDialog : public QDialog
 
 public:
     explicit NewDirDialog(QWidget *parent = nullptr);
-    ~NewDirDialog();
 
-    void initSignalAndSlot(void);
+    void initSignalAndSlot();
 
-    QString getDirName(void);
+    QString getDirName();
 
 private:
     Ui::DirNameDialog *ui;

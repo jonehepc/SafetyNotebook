@@ -1,7 +1,7 @@
 #ifndef PASSWORDDIALOG_H
 #define PASSWORDDIALOG_H
 
-#include <QDialog>
+#include <QtWidgets/QDialog>
 
 namespace Ui {
 class PasswordDialog;
@@ -13,7 +13,6 @@ class PasswordDialog : public QDialog
 
 public:
     explicit PasswordDialog(QWidget *parent = nullptr);
-    ~PasswordDialog() override;
 
     QString getPassword() const;
 

@@ -260,8 +260,8 @@ p, li { white-space: pre-wrap; }
    <addaction name="actionIndentLess"/>
    <addaction name="actionIndentMore"/>
    <addaction name="separator"/>
-   <addaction name="actionTextBackgroundColor"/>
    <addaction name="actionTextColor"/>
+   <addaction name="actionTextBackgroundColor"/>
    <addaction name="separator"/>
    <addaction name="actionZoomOut"/>
    <addaction name="actionZoomIn"/>

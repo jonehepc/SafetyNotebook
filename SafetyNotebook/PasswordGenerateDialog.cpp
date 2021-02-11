@@ -16,8 +16,8 @@ PasswordGenerateDialog::PasswordGenerateDialog(QWidget *parent) :
 }
 
 void PasswordGenerateDialog::initSignalAndSlot() {
-    connect(ui->pushButtonCopy, SIGNAL(clicked()), this, SLOT(onPushButtonCopyClicked()));
-    connect(ui->pushButtonGenerate, SIGNAL(clicked()), this, SLOT(onPushButtonGenerateClicked()));
+    connect(ui->pushButtonCopy, &QPushButton::clicked, this, &PasswordGenerateDialog::onPushButtonCopyClicked);
+    connect(ui->pushButtonGenerate, &QPushButton::clicked, this, &PasswordGenerateDialog::onPushButtonGenerateClicked);
 }
 
 void PasswordGenerateDialog::initUi() {
@@ -63,8 +63,4 @@ void PasswordGenerateDialog::onPushButtonGenerateClicked() {
 void PasswordGenerateDialog::onPushButtonCopyClicked() {
     auto clipboard = QGuiApplication::clipboard();
     clipboard->setText(ui->lineEditPasswd->text());
-}
-
-PasswordGenerateDialog::~PasswordGenerateDialog() {
-    delete ui;
 }

@@ -2,25 +2,17 @@
 #include "ui_newdirdialog.h"
 
 NewDirDialog::NewDirDialog(QWidget *parent) :
-    QDialog(parent),
-    ui(new Ui::DirNameDialog)
-{
+        QDialog(parent),
+        ui(new Ui::DirNameDialog) {
     ui->setupUi(this);
 
     initSignalAndSlot();
 }
 
-NewDirDialog::~NewDirDialog()
-{
-    delete ui;
+void NewDirDialog::initSignalAndSlot() {
+    connect(ui->pushButtonOk, &QPushButton::clicked, this, &NewDirDialog::accept);
 }
 
-void NewDirDialog::initSignalAndSlot()
-{
-    QObject::connect(ui->pushButtonOk, SIGNAL(clicked()), this, SLOT(accept()));
-}
-
-QString NewDirDialog::getDirName()
-{
+QString NewDirDialog::getDirName() {
     return ui->lineEditName->text();
 }

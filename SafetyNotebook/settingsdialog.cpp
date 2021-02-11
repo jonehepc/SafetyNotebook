@@ -1,17 +1,19 @@
 ﻿#include "settingsdialog.h"
 #include "ui_settingsdialog.h"
+#include "settings.h"
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
         QDialog(parent),
         ui(new Ui::SettingsDialog) {
     ui->setupUi(this);
-
+    _remoteSettings = new RemoteSettings();
     initUi();
     initSignalAndSlot();
 }
 
 SettingsDialog::~SettingsDialog() {
     delete ui;
+    delete _remoteSettings;
 }
 
 void SettingsDialog::initUi() {
@@ -19,18 +21,18 @@ void SettingsDialog::initUi() {
 }
 
 void SettingsDialog::initSignalAndSlot() {
-    connect(ui->pushButtonApply, SIGNAL(clicked()), this, SLOT(onPushButtonApplyClicked()));
-    connect(ui->pushButtonCancel, SIGNAL(clicked()), this, SLOT(onPushButtonCancelClicked()));
-    connect(ui->radioButtonRemoteDisable, SIGNAL(clicked()), this, SLOT(onRadioButtonRemoteDisableClicked()));
-    connect(ui->radioButtonRemoteEnable, SIGNAL(clicked()), this, SLOT(onRadioButtonRemoteEnableClicked()));
+    connect(ui->pushButtonApply, &QPushButton::clicked, this, &SettingsDialog::onPushButtonApplyClicked);
+    connect(ui->pushButtonCancel, &QPushButton::clicked, this, &SettingsDialog::onPushButtonCancelClicked);
+    connect(ui->radioButtonRemoteDisable, &QPushButton::clicked, this, &SettingsDialog::onRadioButtonRemoteDisableClicked);
+    connect(ui->radioButtonRemoteEnable, &QPushButton::clicked, this, &SettingsDialog::onRadioButtonRemoteEnableClicked);
 }
 
 void SettingsDialog::onPushButtonApplyClicked() {
-    _remoteSettings.state = ui->radioButtonRemoteEnable->isChecked();
-    _remoteSettings.server = ui->lineEditServer->text();
-    _remoteSettings.port = ui->lineEditPort->text().toInt();
-    _remoteSettings.user = ui->lineEditUser->text();
-    _remoteSettings.password = ui->lineEditPassword->text();
+    _remoteSettings->state = ui->radioButtonRemoteEnable->isChecked();
+    _remoteSettings->server = ui->lineEditServer->text();
+    _remoteSettings->port = ui->lineEditPort->text().toInt();
+    _remoteSettings->user = ui->lineEditUser->text();
+    _remoteSettings->password = ui->lineEditPassword->text();
 }
 
 void SettingsDialog::onPushButtonCancelClicked() {
@@ -60,17 +62,17 @@ void SettingsDialog::onRadioButtonRemoteDisableClicked() {
 }
 
 RemoteSettings SettingsDialog::getRemoteSettings() const {
-    return _remoteSettings;
+    return *_remoteSettings;
 }
 
 void SettingsDialog::setRemoteSettings(const RemoteSettings &v) {
-    _remoteSettings = v;
-    if(_remoteSettings.state)
+    *_remoteSettings = v;
+    if(_remoteSettings->state)
         ui->radioButtonRemoteEnable->click();
     else
         ui->radioButtonRemoteDisable->click();
-    ui->lineEditServer->setText(_remoteSettings.server);
-    ui->lineEditPort->setText(QString(_remoteSettings.port));
-    ui->lineEditUser->setText(_remoteSettings.user);
-    ui->lineEditPassword->setText(_remoteSettings.password);
+    ui->lineEditServer->setText(_remoteSettings->server);
+    ui->lineEditPort->setText(QString(_remoteSettings->port));
+    ui->lineEditUser->setText(_remoteSettings->user);
+    ui->lineEditPassword->setText(_remoteSettings->password);
 }
