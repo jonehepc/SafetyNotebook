@@ -31,8 +31,21 @@ public slots:
 
     void onPushButtonCopyClicked();
 
+    void onSpinBoxSpecialSizeValueChanged(int i);
+
+    void onSpinBoxNumberSizeValueChanged(int i);
+
+    void onSpinBoxPassLenValueChanged(int i);
+
+    void onSpinBoxLowerSizeValueChanged(int i);
+
+    void onSpinBoxUpperSizeValueChanged(int i);
+
 private:
     Ui::DialogGeneratePassword *ui;
+
+    int getMinPassLen() const;
+
 };
 
 

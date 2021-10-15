@@ -1,4 +1,4 @@
-﻿cmake_minimum_required(VERSION 3.5)
+﻿cmake_minimum_required(VERSION 3.15)
 
 project(SecNote LANGUAGES CXX)
 
@@ -18,6 +18,8 @@ IF (MSVC)
     SET(OPTIONS WIN32)
     add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
     add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+    add_compile_options("$<$<C_COMPILER_ID:MSVC>:/MT>")
+    add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/MT>")
 ENDIF (MSVC)
 
 find_package(Qt5 COMPONENTS REQUIRED Widgets LinguistTools Gui Core)
@@ -74,16 +76,7 @@ add_executable(SafetyNotebook ${OPTIONS}
         ${UI_SRC}
         ${MOC_SRC}
         ${QRC_SRC}
-        #${TS_FILES}
         )
-
-#add_executable(
-#        SecNote
-#        ${CPP_FILES}
-#        ${H_FILES}
-#        ${UI_FILES}
-#        ${QRC_FILES}
-#)
 
 target_link_libraries(SafetyNotebook PRIVATE Qt5::Widgets Qt5::Core Qt5::Gui)
 
